@@ -1,29 +1,32 @@
 import numpy as np
 import pickle
 import streamlit as st
+import os
+
+# Load the saved model using a relative path
+model_path = 'trained_model.sav'
 
 # Load the saved model
-loaded_model = pickle.load(open('C:\Users\utkar\trained_model.sav', 'rb'))
+with open(model_path, 'rb') as file:
+    loaded_model = pickle.load(file)
 
 # Create a function for Prediction
 def diabetes_prediction(input_data):
-
     # Change the input_data to numpy array
     input_data_as_numpy_array = np.asarray(input_data)
 
     # Reshape the array as we are predicting for one instance
-    input_data_reshaped = input_data_as_numpy_array.reshape(1,-1)
+    input_data_reshaped = input_data_as_numpy_array.reshape(1, -1)
     
     prediction = loaded_model.predict(input_data_reshaped)
     print(prediction)
 
-    if (prediction[0] == 0):
-      return 'The person is not diabetic'
+    if prediction[0] == 0:
+        return 'The person is not diabetic'
     else:
-      return 'The person is diabetic'
+        return 'The person is diabetic'
   
 def main():
-    
     # Give a title
     st.title('Diabetes Prediction Web App')
     
@@ -41,7 +44,6 @@ def main():
     diagnosis = ''
     
     # Create a button for Prediction
-    
     if st.button('Diabetes Test Result'):
         diagnosis = diabetes_prediction([Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age])
         
