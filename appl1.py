@@ -1,85 +1,51 @@
-# Import the required libraries
+# Import required libraries
+import streamlit as st
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn import svm
-from sklearn.metrics import accuracy_score
 import pickle
-import os
 
-# Define the relative path for the dataset and model
-data_path = 'diabetes.csv'
+# Title of the Web App
+st.title("Diabetes Prediction App")
+
+# Load the trained model
 model_path = 'trained_model.sav'
+try:
+    with open(model_path, 'rb') as file:
+        classifier = pickle.load(file)
+except FileNotFoundError:
+    st.error("⚠️ Model file not found! Please train and save the model first.")
+    st.stop()
 
-# Load the diabetes dataset to a pandas DataFrame
-diabetes_dataset = pd.read_csv(data_path)
+# User Input Form
+st.header("Enter the Patient's Details")
+Pregnancies = st.number_input("Number of Pregnancies", min_value=0, max_value=20, step=1)
+Glucose = st.number_input("Glucose Level", min_value=0, max_value=300)
+BloodPressure = st.number_input("Blood Pressure", min_value=0, max_value=200)
+SkinThickness = st.number_input("Skin Thickness", min_value=0, max_value=100)
+Insulin = st.number_input("Insulin Level", min_value=0, max_value=900)
+BMI = st.number_input("BMI", min_value=0.0, max_value=60.0, step=0.1)
+DiabetesPedigreeFunction = st.number_input("Diabetes Pedigree Function", min_value=0.0, max_value=2.5, step=0.01)
+Age = st.number_input("Age", min_value=0, max_value=120)
 
-# Print the first 5 rows of the dataset
-print(diabetes_dataset.head())
+# Prediction Button
+if st.button("Predict Diabetes"):
+    # Convert input to numpy array
+    input_data = np.array([[Pregnancies, Glucose, BloodPressure, SkinThickness, 
+                            Insulin, BMI, DiabetesPedigreeFunction, Age]])
+    
+    # Define column names
+    column_names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 
+                    'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
 
-# To get the number of rows and columns in the dataset
-print(diabetes_dataset.shape)
+    # Convert to DataFrame with column names
+    input_data_df = pd.DataFrame(input_data, columns=column_names)
 
-# To get the statistical measures of the data
-print(diabetes_dataset.describe())
+    # Get Prediction
+    prediction = classifier.predict(input_data_df)
 
-# To get details of the outcome column
-print(diabetes_dataset['Outcome'].value_counts())
+    # Show Result
+    if prediction[0] == 0:
+        st.success("✅ The person is **NOT diabetic**")
+    else:
+        st.error("⚠️ The person is **diabetic**")
 
-# Separating the data and labels
-X = diabetes_dataset.drop(columns='Outcome', axis=1)
-Y = diabetes_dataset['Outcome']
-
-# To print the independent variables
-print(X)
-
-# To print the outcome variable
-print(Y)
-
-# Split the data into train and test
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, stratify=Y, random_state=2)
-print(X.shape, X_train.shape, X_test.shape)
-
-# Build the model
-classifier = svm.SVC(kernel='linear')
-
-# Train the support vector Machine Classifier
-classifier.fit(X_train, Y_train)
-
-# Accuracy score on the training data
-X_train_prediction = classifier.predict(X_train)
-training_data_accuracy = accuracy_score(X_train_prediction, Y_train)
-print('Accuracy score of the training data : ', training_data_accuracy)
-
-# Accuracy score on the test data
-X_test_prediction = classifier.predict(X_test)
-test_data_accuracy = accuracy_score(X_test_prediction, Y_test)
-print('Accuracy score of the test data : ', test_data_accuracy)
-
-input_data = (5, 166, 72, 19, 175, 25.8, 0.587, 51)
-
-# Define column names (same as used in training)
-column_names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 
-                'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
-
-# Convert input data to DataFrame with column names
-input_data_as_numpy_array = np.asarray(input_data).reshape(1, -1)
-input_data_df = pd.DataFrame(input_data_as_numpy_array, columns=column_names)
-
-# Make prediction using the trained model
-prediction = classifier.predict(input_data_df)
-
-print(prediction)
-
-if prediction[0] == 0:
-    print('The person is not diabetic')
-else:
-    print('The person is diabetic')
-
-# Save the trained model
-with open(model_path, 'wb') as file:
-    pickle.dump(classifier, file)
-
-# Load the saved model
-with open(model_path, 'rb') as file:
-    loaded_model = pickle.load(file)
