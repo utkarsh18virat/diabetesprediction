@@ -58,13 +58,17 @@ print('Accuracy score of the test data : ', test_data_accuracy)
 
 input_data = (5, 166, 72, 19, 175, 25.8, 0.587, 51)
 
-# Change the input_data to numpy array
-input_data_as_numpy_array = np.asarray(input_data)
+# Define column names (same as used in training)
+column_names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 
+                'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
 
-# Reshape the array for one instance
-input_data_reshaped = input_data_as_numpy_array.reshape(1, -1)
+# Convert input data to DataFrame with column names
+input_data_as_numpy_array = np.asarray(input_data).reshape(1, -1)
+input_data_df = pd.DataFrame(input_data_as_numpy_array, columns=column_names)
 
-prediction = classifier.predict(input_data_reshaped)
+# Make prediction using the trained model
+prediction = classifier.predict(input_data_df)
+
 print(prediction)
 
 if prediction[0] == 0:
